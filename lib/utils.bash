@@ -41,8 +41,23 @@ download_release() {
 	version="$1"
 	filename="$2"
 
+	case "$OSTYPE" in
+	linux*) platform="linux" ;;
+	darwin*) platform="macOS" ;;
+	msys*) platform="win64" ;;
+	*) fail "Unsupported platform" ;;
+	esac
+
+	if [[ "$platform" == "linux" ]]; then
+		case "$(uname -m)" in
+		x86_64 | amd64) platform="linux-static-x86_64" ;;
+		aarch64 | arm64) platform="linux-static-arm64" ;;
+		*) fail "Unsupported architecture" ;;
+		esac
+	fi
+
 	# TODO: Adapt the release URL convention for verible
-	url="$GH_REPO/archive/v${version}.tar.gz"
+	url="$GH_REPO/releases/download/v${version}/${TOOL_NAME}-v${version}-${platform}.tar.gz"
 
 	echo "* Downloading $TOOL_NAME release $version..."
 	curl "${curl_opts[@]}" -o "$filename" -C - "$url" || fail "Could not download $url"
